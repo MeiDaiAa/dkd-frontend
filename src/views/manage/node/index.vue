@@ -2,20 +2,20 @@
   <div class="app-container">
     <el-form :model="queryParams" ref="queryRef" :inline="true" v-show="showSearch" label-width="68px">
       <el-form-item label="点位搜索" prop="nodeName">
-        <el-input
-          v-model="queryParams.nodeName"
-          placeholder="请输入"
-          clearable
-          @keyup.enter="handleQuery"
-        />
+        <el-input v-model="queryParams.nodeName" placeholder="请输入" clearable @keyup.enter="handleQuery" />
       </el-form-item>
       <el-form-item label="区域搜索" prop="regionId">
-        <el-input
-          v-model="queryParams.regionId"
-          placeholder="请输入"
-          clearable
-          @keyup.enter="handleQuery"
-        />
+        <!-- <el-input
+        v-model="queryParams.regionId"
+        placeholder="请输入"
+        clearable
+        @keyup.enter="handleQuery"
+        /> -->
+        <!-- 更改为下拉框 -->
+        <el-select v-model="queryParams.regionId" placeholder="请选择区域" clearable>
+          <el-option v-for="region in allRegion" :key="region.id" :label="region.regionName"
+            :value="region.id"></el-option>
+        </el-select>
       </el-form-item>
       <el-form-item>
         <el-button type="primary" icon="Search" @click="handleQuery">搜索</el-button>
@@ -25,73 +25,47 @@
 
     <el-row :gutter="10" class="mb8">
       <el-col :span="1.5">
-        <el-button
-          type="primary"
-          plain
-          icon="Plus"
-          @click="handleAdd"
-          v-hasPermi="['manage:node:add']"
-        >新增</el-button>
+        <el-button type="primary" plain icon="Plus" @click="handleAdd" v-hasPermi="['manage:node:add']">新增</el-button>
       </el-col>
       <el-col :span="1.5">
-        <el-button
-          type="success"
-          plain
-          icon="Edit"
-          :disabled="single"
-          @click="handleUpdate"
-          v-hasPermi="['manage:node:edit']"
-        >修改</el-button>
+        <el-button type="success" plain icon="Edit" :disabled="single" @click="handleUpdate"
+          v-hasPermi="['manage:node:edit']">修改</el-button>
       </el-col>
       <el-col :span="1.5">
-        <el-button
-          type="danger"
-          plain
-          icon="Delete"
-          :disabled="multiple"
-          @click="handleDelete"
-          v-hasPermi="['manage:node:remove']"
-        >删除</el-button>
+        <el-button type="danger" plain icon="Delete" :disabled="multiple" @click="handleDelete"
+          v-hasPermi="['manage:node:remove']">删除</el-button>
       </el-col>
       <el-col :span="1.5">
-        <el-button
-          type="warning"
-          plain
-          icon="Download"
-          @click="handleExport"
-          v-hasPermi="['manage:node:export']"
-        >导出</el-button>
+        <el-button type="warning" plain icon="Download" @click="handleExport"
+          v-hasPermi="['manage:node:export']">导出</el-button>
       </el-col>
       <right-toolbar v-model:showSearch="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
 
     <el-table v-loading="loading" :data="nodeList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
-      <el-table-column label="序号" type="index" align="center" prop="id" width="50px"/>
+      <el-table-column label="序号" type="index" align="center" prop="id" width="50px" />
       <el-table-column label="点位名称" align="center" prop="nodeName" />
       <el-table-column label="所在区域" align="center" prop="region.regionName" />
       <el-table-column label="商圈类型" align="center" prop="businessType">
         <template #default="scope">
-          <dict-tag :options="business_type" :value="scope.row.businessType"/>
+          <dict-tag :options="business_type" :value="scope.row.businessType" />
         </template>
       </el-table-column>
       <el-table-column label="合作商" align="center" prop="partner.partnerName" />
       <el-table-column label="详细地址" align="center" prop="address" />
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
         <template #default="scope">
-          <el-button link type="primary" @click="handleUpdate(scope.row)" v-hasPermi="['manage:node:edit']">修改</el-button>
-          <el-button link type="primary" @click="handleDelete(scope.row)" v-hasPermi="['manage:node:remove']">删除</el-button>
+          <el-button link type="primary" @click="handleUpdate(scope.row)"
+            v-hasPermi="['manage:node:edit']">修改</el-button>
+          <el-button link type="primary" @click="handleDelete(scope.row)"
+            v-hasPermi="['manage:node:remove']">删除</el-button>
         </template>
       </el-table-column>
     </el-table>
-    
-    <pagination
-      v-show="total>0"
-      :total="total"
-      v-model:page="queryParams.pageNum"
-      v-model:limit="queryParams.pageSize"
-      @pagination="getList"
-    />
+
+    <pagination v-show="total > 0" :total="total" v-model:page="queryParams.pageNum"
+      v-model:limit="queryParams.pageSize" @pagination="getList" />
 
     <!-- 添加或修改点位对话框 -->
     <el-dialog :title="title" v-model="open" width="500px" append-to-body>
@@ -104,19 +78,25 @@
         </el-form-item>
         <el-form-item label="商圈类型" prop="businessType">
           <el-select v-model="form.businessType" placeholder="请选择商圈类型">
-            <el-option
-              v-for="dict in business_type"
-              :key="dict.value"
-              :label="dict.label"
-              :value="parseInt(dict.value)"
-            ></el-option>
+            <el-option v-for="dict in business_type" :key="dict.value" :label="dict.label"
+              :value="parseInt(dict.value)"></el-option>
           </el-select>
         </el-form-item>
         <el-form-item label="所在区域" prop="regionId">
-          <el-input v-model="form.regionId" placeholder="请输入所在区域" />
+          <!-- <el-input v-model="form.regionId" placeholder="请输入所在区域" /> -->
+          <!-- 更改为下拉框 -->
+          <el-select v-model="queryParams.regionId" placeholder="请选择区域" clearable>
+            <el-option v-for="region in allRegion" :key="region.id" :label="region.regionName"
+              :value="region.id"></el-option>
+          </el-select>
         </el-form-item>
         <el-form-item label="合作商" prop="partnerId">
-          <el-input v-model="form.partnerId" placeholder="请输入合作商" />
+          <!-- <el-input v-model="form.partnerId" placeholder="请输入合作商" /> -->
+          <!-- 更改为下拉框 -->
+          <el-select v-model="queryParams.partnerId" placeholder="请选择合作商" clearable>
+            <el-option v-for="partner in allPartner" :key="partner.id" :label="partner.partnerName"
+              :value="partner.id"></el-option>
+          </el-select>
         </el-form-item>
       </el-form>
       <template #footer>
@@ -131,6 +111,9 @@
 
 <script setup name="Node">
 import { listNode, getNode, delNode, addNode, updateNode } from "@/api/manage/node";
+import { listRegion } from "@/api/manage/region";
+import { listPartner } from "@/api/manage/partner";
+import { loadAllParams } from "@/api/page";
 
 const { proxy } = getCurrentInstance();
 const { business_type } = proxy.useDict('business_type');
@@ -269,12 +252,12 @@ function submitForm() {
 /** 删除按钮操作 */
 function handleDelete(row) {
   const _ids = row.id || ids.value;
-  proxy.$modal.confirm('是否确认删除点位编号为"' + _ids + '"的数据项？').then(function() {
+  proxy.$modal.confirm('是否确认删除点位编号为"' + _ids + '"的数据项？').then(function () {
     return delNode(_ids);
   }).then(() => {
     getList();
     proxy.$modal.msgSuccess("删除成功");
-  }).catch(() => {});
+  }).catch(() => { });
 }
 
 /** 导出按钮操作 */
@@ -283,6 +266,25 @@ function handleExport() {
     ...queryParams.value
   }, `node_${new Date().getTime()}.xlsx`)
 }
+
+/** 查询所有区域列表 */
+const allRegion = ref([]);
+function getAllRegionList() {
+  listRegion(loadAllParams).then(response => {
+    allRegion.value = response.rows;
+  });
+}
+/** 查询所有合作商列表 */
+const allPartner = ref([]);
+function getAllPartnerList() {
+  listPartner(loadAllParams).then(response => {
+    allPartner.value = response.rows;
+  });
+}
+getAllRegionList();
+getAllPartnerList();
+console.log(allRegion.value);
+console.log(allPartner.value);
 
 getList();
 </script>
