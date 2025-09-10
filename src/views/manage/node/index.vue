@@ -283,8 +283,6 @@ function getAllPartnerList() {
 }
 getAllRegionList();
 getAllPartnerList();
-console.log(allRegion.value);
-console.log(allPartner.value);
 
 getList();
 </script>
