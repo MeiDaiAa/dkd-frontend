@@ -2,47 +2,22 @@
   <div class="app-container">
     <el-form :model="queryParams" ref="queryRef" :inline="true" v-show="showSearch" label-width="68px">
       <el-form-item label="人员名称" prop="userName">
-        <el-input
-          v-model="queryParams.userName"
-          placeholder="请输入人员名称"
-          clearable
-          @keyup.enter="handleQuery"
-        />
+        <el-input v-model="queryParams.userName" placeholder="请输入人员名称" clearable @keyup.enter="handleQuery" />
       </el-form-item>
-      <el-form-item label="归属区域" prop="regionName">
-        <el-input
-          v-model="queryParams.regionName"
-          placeholder="请输入归属区域"
-          clearable
-          @keyup.enter="handleQuery"
-        />
+      <!-- <el-form-item label="归属区域" prop="regionName">
+        <el-input v-model="queryParams.regionName" placeholder="请输入归属区域" clearable @keyup.enter="handleQuery" />
       </el-form-item>
       <el-form-item label="角色" prop="roleName">
-        <el-input
-          v-model="queryParams.roleName"
-          placeholder="请输入角色"
-          clearable
-          @keyup.enter="handleQuery"
-        />
+        <el-input v-model="queryParams.roleName" placeholder="请输入角色" clearable @keyup.enter="handleQuery" />
       </el-form-item>
       <el-form-item label="联系电话" prop="mobile">
-        <el-input
-          v-model="queryParams.mobile"
-          placeholder="请输入联系电话"
-          clearable
-          @keyup.enter="handleQuery"
-        />
+        <el-input v-model="queryParams.mobile" placeholder="请输入联系电话" clearable @keyup.enter="handleQuery" />
       </el-form-item>
       <el-form-item label="是否启用" prop="status">
         <el-select v-model="queryParams.status" placeholder="请选择是否启用" clearable>
-          <el-option
-            v-for="dict in emp_status"
-            :key="dict.value"
-            :label="dict.label"
-            :value="dict.value"
-          />
+          <el-option v-for="dict in emp_status" :key="dict.value" :label="dict.label" :value="dict.value" />
         </el-select>
-      </el-form-item>
+      </el-form-item> -->
       <el-form-item>
         <el-button type="primary" icon="Search" @click="handleQuery">搜索</el-button>
         <el-button icon="Refresh" @click="resetQuery">重置</el-button>
@@ -51,68 +26,42 @@
 
     <el-row :gutter="10" class="mb8">
       <el-col :span="1.5">
-        <el-button
-          type="primary"
-          plain
-          icon="Plus"
-          @click="handleAdd"
-          v-hasPermi="['manage:emp:add']"
-        >新增</el-button>
+        <el-button type="primary" plain icon="Plus" @click="handleAdd" v-hasPermi="['manage:emp:add']">新增</el-button>
       </el-col>
       <el-col :span="1.5">
-        <el-button
-          type="success"
-          plain
-          icon="Edit"
-          :disabled="single"
-          @click="handleUpdate"
-          v-hasPermi="['manage:emp:edit']"
-        >修改</el-button>
+        <el-button type="success" plain icon="Edit" :disabled="single" @click="handleUpdate"
+          v-hasPermi="['manage:emp:edit']">修改</el-button>
       </el-col>
       <el-col :span="1.5">
-        <el-button
-          type="danger"
-          plain
-          icon="Delete"
-          :disabled="multiple"
-          @click="handleDelete"
-          v-hasPermi="['manage:emp:remove']"
-        >删除</el-button>
+        <el-button type="danger" plain icon="Delete" :disabled="multiple" @click="handleDelete"
+          v-hasPermi="['manage:emp:remove']">删除</el-button>
       </el-col>
       <el-col :span="1.5">
-        <el-button
-          type="warning"
-          plain
-          icon="Download"
-          @click="handleExport"
-          v-hasPermi="['manage:emp:export']"
-        >导出</el-button>
+        <el-button type="warning" plain icon="Download" @click="handleExport"
+          v-hasPermi="['manage:emp:export']">导出</el-button>
       </el-col>
       <right-toolbar v-model:showSearch="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
 
     <el-table v-loading="loading" :data="empList" @selection-change="handleSelectionChange">
-      <el-table-column type="selection" width="55" align="center" />
-      <el-table-column label="主键" align="center" prop="id" />
+      <el-table-column type="selection" width="55" align="center" prop="id" />
+      <el-table-column label="序号" type="index" width="50px" align="center" prop="id" />
       <el-table-column label="人员名称" align="center" prop="userName" />
       <el-table-column label="归属区域" align="center" prop="regionName" />
       <el-table-column label="角色" align="center" prop="roleName" />
       <el-table-column label="联系电话" align="center" prop="mobile" />
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
         <template #default="scope">
-          <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)" v-hasPermi="['manage:emp:edit']">修改</el-button>
-          <el-button link type="primary" icon="Delete" @click="handleDelete(scope.row)" v-hasPermi="['manage:emp:remove']">删除</el-button>
+          <el-button link type="primary" @click="handleUpdate(scope.row)"
+            v-hasPermi="['manage:emp:edit']">修改</el-button>
+          <el-button link type="primary" @click="handleDelete(scope.row)"
+            v-hasPermi="['manage:emp:remove']">删除</el-button>
         </template>
       </el-table-column>
     </el-table>
-    
-    <pagination
-      v-show="total>0"
-      :total="total"
-      v-model:page="queryParams.pageNum"
-      v-model:limit="queryParams.pageSize"
-      @pagination="getList"
-    />
+
+    <pagination v-show="total > 0" :total="total" v-model:page="queryParams.pageNum"
+      v-model:limit="queryParams.pageSize" @pagination="getList" />
 
     <!-- 添加或修改人员列表对话框 -->
     <el-dialog :title="title" v-model="open" width="500px" append-to-body>
@@ -120,26 +69,28 @@
         <el-form-item label="人员名称" prop="userName">
           <el-input v-model="form.userName" placeholder="请输入人员名称" />
         </el-form-item>
-        <el-form-item label="所属区域Id" prop="regionId">
-          <el-input v-model="form.regionId" placeholder="请输入所属区域Id" />
-        </el-form-item>
-        <el-form-item label="角色id" prop="roleId">
+        <el-form-item label="角色" prop="roleId">
+          <!-- TODO 角色下拉框 -->
           <el-input v-model="form.roleId" placeholder="请输入角色id" />
         </el-form-item>
         <el-form-item label="联系电话" prop="mobile">
           <el-input v-model="form.mobile" placeholder="请输入联系电话" />
         </el-form-item>
-        <el-form-item label="员工头像" prop="image">
-          <image-upload v-model="form.image"/>
+        <!-- 创建时间 -->
+        <el-form-item label="创建时间" prop="createTime" v-if="form.id">
+          {{ form.createTime }}
+        </el-form-item>
+        <el-form-item label="负责区域" prop="regionId">
+          <!-- TODO 负责区域下拉框 -->
+          <el-input v-model="form.regionId" placeholder="请输入负责区域id" />
+        </el-form-item>
+        <el-form-item label="员工头像" prop="image" >
+          <image-upload v-model="form.image" :limit="1" :multiple="false" />
         </el-form-item>
         <el-form-item label="是否启用" prop="status">
           <el-select v-model="form.status" placeholder="请选择是否启用">
-            <el-option
-              v-for="dict in emp_status"
-              :key="dict.value"
-              :label="dict.label"
-              :value="parseInt(dict.value)"
-            ></el-option>
+            <el-option v-for="dict in emp_status" :key="dict.value" :label="dict.label"
+              :value="parseInt(dict.value)"></el-option>
           </el-select>
         </el-form-item>
       </el-form>
@@ -193,6 +144,12 @@ const data = reactive({
     status: [
       { required: true, message: "是否启用不能为空", trigger: "change" }
     ],
+    roleId: [
+      { required: true, message: "角色不能为空", trigger: "blur" }
+    ],
+    regionId: [
+      { required: true, message: "负责区域不能为空", trigger: "blur" }
+    ]
   }
 });
 
@@ -294,12 +251,12 @@ function submitForm() {
 /** 删除按钮操作 */
 function handleDelete(row) {
   const _ids = row.id || ids.value;
-  proxy.$modal.confirm('是否确认删除人员列表编号为"' + _ids + '"的数据项？').then(function() {
+  proxy.$modal.confirm('是否确认删除人员列表编号为"' + _ids + '"的数据项？').then(function () {
     return delEmp(_ids);
   }).then(() => {
     getList();
     proxy.$modal.msgSuccess("删除成功");
-  }).catch(() => {});
+  }).catch(() => { });
 }
 
 /** 导出按钮操作 */
