@@ -70,8 +70,9 @@
           <el-input v-model="form.userName" placeholder="请输入人员名称" />
         </el-form-item>
         <el-form-item label="角色" prop="roleId">
-          <!-- TODO 角色下拉框 -->
-          <el-input v-model="form.roleId" placeholder="请输入角色id" />
+          <el-select v-model="form.roleId" placeholder="请选择">
+            <el-option v-for="role in roleList" :key="role.roleId" :label="role.roleName" :value="role.roleId"></el-option>
+          </el-select>
         </el-form-item>
         <el-form-item label="联系电话" prop="mobile">
           <el-input v-model="form.mobile" placeholder="请输入联系电话" />
@@ -81,10 +82,12 @@
           {{ form.createTime }}
         </el-form-item>
         <el-form-item label="负责区域" prop="regionId">
-          <!-- TODO 负责区域下拉框 -->
-          <el-input v-model="form.regionId" placeholder="请输入负责区域id" />
+          <el-select v-model="form.regionId" placeholder="请选择">
+            <el-option v-for="region in regionList" :key="region.id" :label="region.regionName" :value="region.id">
+            </el-option>
+          </el-select>
         </el-form-item>
-        <el-form-item label="员工头像" prop="image" >
+        <el-form-item label="员工头像" prop="image">
           <image-upload v-model="form.image" :limit="1" :multiple="false" />
         </el-form-item>
         <el-form-item label="是否启用" prop="status">
@@ -106,6 +109,9 @@
 
 <script setup name="Emp">
 import { listEmp, getEmp, delEmp, addEmp, updateEmp } from "@/api/manage/emp";
+import { listRole } from "@/api/manage/role";
+import { listRegion } from "@/api/manage/region";
+import { loadAllParams } from "@/api/page";
 
 const { proxy } = getCurrentInstance();
 const { emp_status } = proxy.useDict('emp_status');
@@ -266,5 +272,22 @@ function handleExport() {
   }, `emp_${new Date().getTime()}.xlsx`)
 }
 
+/* 查询全部角色 */
+let roleList = ref([]);
+function getRoleList() {
+  listRole(loadAllParams).then(response => {
+    roleList.value = response.rows;
+  });
+}
+/* 查询全部区域 */
+let regionList = ref([]);
+function getRegionList() {
+  listRegion(loadAllParams).then(response => {
+    regionList.value = response.rows;
+  });
+}
+
 getList();
+getRoleList();
+getRegionList();
 </script>
