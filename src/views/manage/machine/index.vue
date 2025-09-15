@@ -2,54 +2,7 @@
   <div class="app-container">
     <el-form :model="queryParams" ref="queryRef" :inline="true" v-show="showSearch" label-width="68px">
       <el-form-item label="设备编号" prop="innerCode">
-        <el-input
-          v-model="queryParams.innerCode"
-          placeholder="请输入设备编号"
-          clearable
-          @keyup.enter="handleQuery"
-        />
-      </el-form-item>
-      <el-form-item label="点位Id" prop="nodeId">
-        <el-input
-          v-model="queryParams.nodeId"
-          placeholder="请输入点位Id"
-          clearable
-          @keyup.enter="handleQuery"
-        />
-      </el-form-item>
-      <el-form-item label="区域Id" prop="regionId">
-        <el-input
-          v-model="queryParams.regionId"
-          placeholder="请输入区域Id"
-          clearable
-          @keyup.enter="handleQuery"
-        />
-      </el-form-item>
-      <el-form-item label="合作商Id" prop="partnerId">
-        <el-input
-          v-model="queryParams.partnerId"
-          placeholder="请输入合作商Id"
-          clearable
-          @keyup.enter="handleQuery"
-        />
-      </el-form-item>
-      <el-form-item label="设备型号" prop="vmTypeId">
-        <el-input
-          v-model="queryParams.vmTypeId"
-          placeholder="请输入设备型号"
-          clearable
-          @keyup.enter="handleQuery"
-        />
-      </el-form-item>
-      <el-form-item label="设备状态" prop="vmStatus">
-        <el-select v-model="queryParams.vmStatus" placeholder="请选择设备状态" clearable>
-          <el-option
-            v-for="dict in vm_status"
-            :key="dict.value"
-            :label="dict.label"
-            :value="dict.value"
-          />
-        </el-select>
+        <el-input v-model="queryParams.innerCode" placeholder="请输入设备编号" clearable @keyup.enter="handleQuery" />
       </el-form-item>
       <el-form-item>
         <el-button type="primary" icon="Search" @click="handleQuery">搜索</el-button>
@@ -59,73 +12,60 @@
 
     <el-row :gutter="10" class="mb8">
       <el-col :span="1.5">
-        <el-button
-          type="primary"
-          plain
-          icon="Plus"
-          @click="handleAdd"
-          v-hasPermi="['manage:machine:add']"
-        >新增</el-button>
+        <el-button type="primary" plain icon="Plus" @click="handleAdd"
+          v-hasPermi="['manage:machine:add']">新增</el-button>
       </el-col>
       <el-col :span="1.5">
-        <el-button
-          type="success"
-          plain
-          icon="Edit"
-          :disabled="single"
-          @click="handleUpdate"
-          v-hasPermi="['manage:machine:edit']"
-        >修改</el-button>
+        <el-button type="success" plain icon="Edit" :disabled="single" @click="handleUpdate"
+          v-hasPermi="['manage:machine:edit']">修改</el-button>
       </el-col>
       <el-col :span="1.5">
-        <el-button
-          type="danger"
-          plain
-          icon="Delete"
-          :disabled="multiple"
-          @click="handleDelete"
-          v-hasPermi="['manage:machine:remove']"
-        >删除</el-button>
+        <el-button type="danger" plain icon="Delete" :disabled="multiple" @click="handleDelete"
+          v-hasPermi="['manage:machine:remove']">删除</el-button>
       </el-col>
       <el-col :span="1.5">
-        <el-button
-          type="warning"
-          plain
-          icon="Download"
-          @click="handleExport"
-          v-hasPermi="['manage:machine:export']"
-        >导出</el-button>
+        <el-button type="warning" plain icon="Download" @click="handleExport"
+          v-hasPermi="['manage:machine:export']">导出</el-button>
       </el-col>
       <right-toolbar v-model:showSearch="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
 
     <el-table v-loading="loading" :data="machineList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
-      <el-table-column label="主键" align="center" prop="id" />
+
       <el-table-column label="设备编号" align="center" prop="innerCode" />
+      <el-table-column label="设备型号" align="center">
+        <template #default="scope">
+          <div v-for="vmType in vmTypeList" :key="vmType.id">
+            <span v-if="vmType.id == scope.row.vmTypeId">{{ vmType.name }}</span>
+          </div>
+        </template>
+      </el-table-column>
       <el-table-column label="详细地址" align="center" prop="addr" />
-      <el-table-column label="合作商Id" align="center" prop="partnerId" />
-      <el-table-column label="设备型号" align="center" prop="vmTypeId" />
+      <el-table-column label="合作商" align="center" prop="partnerId">
+        <template #default="scope">
+          <div v-for="partner in partnerList" :key="partner.id">
+            <span v-if="partner.id == scope.row.partnerId">{{ partner.partnerName }}</span>
+          </div>
+        </template>
+      </el-table-column>
       <el-table-column label="设备状态" align="center" prop="vmStatus">
         <template #default="scope">
-          <dict-tag :options="vm_status" :value="scope.row.vmStatus"/>
+          <dict-tag :options="vm_status" :value="scope.row.vmStatus" />
         </template>
       </el-table-column>
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
         <template #default="scope">
-          <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)" v-hasPermi="['manage:machine:edit']">修改</el-button>
-          <el-button link type="primary" icon="Delete" @click="handleDelete(scope.row)" v-hasPermi="['manage:machine:remove']">删除</el-button>
+          <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)"
+            v-hasPermi="['manage:machine:edit']">修改</el-button>
+          <el-button link type="primary" icon="Delete" @click="handleDelete(scope.row)"
+            v-hasPermi="['manage:machine:remove']">删除</el-button>
         </template>
       </el-table-column>
     </el-table>
-    
-    <pagination
-      v-show="total>0"
-      :total="total"
-      v-model:page="queryParams.pageNum"
-      v-model:limit="queryParams.pageSize"
-      @pagination="getList"
-    />
+
+    <pagination v-show="total > 0" :total="total" v-model:page="queryParams.pageNum"
+      v-model:limit="queryParams.pageSize" @pagination="getList" />
 
     <!-- 添加或修改设备管理对话框 -->
     <el-dialog :title="title" v-model="open" width="500px" append-to-body>
@@ -152,6 +92,11 @@
 
 <script setup name="Machine">
 import { listMachine, getMachine, delMachine, addMachine, updateMachine } from "@/api/manage/machine";
+import { listVmType } from "@/api/manage/vmType";
+import { listRegion } from "@/api/manage/region";
+import { listPartner } from "@/api/manage/partner";
+import { loadAllParams } from "@/api/page";
+
 
 const { proxy } = getCurrentInstance();
 const { vm_status } = proxy.useDict('vm_status');
@@ -293,12 +238,12 @@ function submitForm() {
 /** 删除按钮操作 */
 function handleDelete(row) {
   const _ids = row.id || ids.value;
-  proxy.$modal.confirm('是否确认删除设备管理编号为"' + _ids + '"的数据项？').then(function() {
+  proxy.$modal.confirm('是否确认删除设备管理编号为"' + _ids + '"的数据项？').then(function () {
     return delMachine(_ids);
   }).then(() => {
     getList();
     proxy.$modal.msgSuccess("删除成功");
-  }).catch(() => {});
+  }).catch(() => { });
 }
 
 /** 导出按钮操作 */
@@ -308,5 +253,31 @@ function handleExport() {
   }, `machine_${new Date().getTime()}.xlsx`)
 }
 
+/* 查询设备型号下拉框数据 */
+let vmTypeList = ref([]);
+function getVmTypeList() {
+  listVmType(loadAllParams).then(response => {
+    vmTypeList.value = response.rows;
+  });
+}
+/* 查询所有区域列表 */
+const regionList = ref([]);
+function getRegionList() {
+  listRegion(loadAllParams).then(response => {
+    regionList.value = response.rows;
+  });
+}
+
+/* 查询所有合作商列表 */
+const partnerList = ref([]);
+function getPartnerList() {
+  listPartner(loadAllParams).then(response => {
+    partnerList.value = response.rows;
+  });
+}
+
+getVmTypeList();
+getRegionList();
+getPartnerList();
 getList();
 </script>
