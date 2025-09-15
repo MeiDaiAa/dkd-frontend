@@ -71,13 +71,19 @@
     <el-dialog :title="title" v-model="open" width="500px" append-to-body>
       <el-form ref="machineRef" :model="form" :rules="rules" label-width="80px">
         <el-form-item label="设备编号" prop="innerCode">
-          <el-input v-model="form.innerCode" placeholder="请输入设备编号" />
+          {{ form.innerCode == null ? "系统自动生成" : form.innerCode }}
         </el-form-item>
-        <el-form-item label="点位Id" prop="nodeId">
-          <el-input v-model="form.nodeId" placeholder="请输入点位Id" />
+        <el-form-item label="选择型号" prop="vmTypeId">
+          <el-select v-model="form.vmTypeId" placeholder="请选择设备型号">
+            <el-option v-for="vmType in vmTypeList" :key="vmType.id" :label="vmType.name"
+              :value="vmType.id"></el-option>
+          </el-select>
         </el-form-item>
-        <el-form-item label="设备型号" prop="vmTypeId">
-          <el-input v-model="form.vmTypeId" placeholder="请输入设备型号" />
+        <el-form-item label="点位" prop="nodeId">
+          <el-select v-model="form.nodeId" placeholder="请选择点位">
+            <el-option v-for="node in nodeList" :key="node.id" :label="node.nodeName" :value="node.id">
+            </el-option>
+          </el-select>
         </el-form-item>
       </el-form>
       <template #footer>
@@ -96,6 +102,7 @@ import { listVmType } from "@/api/manage/vmType";
 import { listRegion } from "@/api/manage/region";
 import { listPartner } from "@/api/manage/partner";
 import { loadAllParams } from "@/api/page";
+import { listNode } from "@/api/manage/node";
 
 
 const { proxy } = getCurrentInstance();
@@ -276,8 +283,17 @@ function getPartnerList() {
   });
 }
 
+/* 查询所有点位列表 */
+const nodeList = ref([]);
+function getNodeList() {
+  listNode(loadAllParams).then(response => {
+    nodeList.value = response.rows;
+  });
+}
+
 getVmTypeList();
 getRegionList();
 getPartnerList();
+getNodeList();
 getList();
 </script>
