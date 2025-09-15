@@ -85,7 +85,7 @@
         <el-form-item label="所在区域" prop="regionId">
           <!-- <el-input v-model="form.regionId" placeholder="请输入所在区域" /> -->
           <!-- 更改为下拉框 -->
-          <el-select v-model="queryParams.regionId" placeholder="请选择区域" clearable>
+          <el-select v-model="form.regionId" placeholder="请选择区域" clearable>
             <el-option v-for="region in allRegion" :key="region.id" :label="region.regionName"
               :value="region.id"></el-option>
           </el-select>
@@ -93,7 +93,7 @@
         <el-form-item label="合作商" prop="partnerId">
           <!-- <el-input v-model="form.partnerId" placeholder="请输入合作商" /> -->
           <!-- 更改为下拉框 -->
-          <el-select v-model="queryParams.partnerId" placeholder="请选择合作商" clearable>
+          <el-select v-model="form.partnerId" placeholder="请选择合作商" clearable>
             <el-option v-for="partner in allPartner" :key="partner.id" :label="partner.partnerName"
               :value="partner.id"></el-option>
           </el-select>
