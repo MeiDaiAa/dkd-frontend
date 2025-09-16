@@ -56,9 +56,9 @@
       </el-table-column>
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
         <template #default="scope">
-          <el-button link type="primary" icon="Edit" @click="handleUpdate(scope.row)"
+          <el-button link type="primary" @click="handleUpdate(scope.row)"
             v-hasPermi="['manage:machine:edit']">修改</el-button>
-          <el-button link type="primary" icon="Delete" @click="handleDelete(scope.row)"
+          <el-button link type="primary" @click="handleDelete(scope.row)"
             v-hasPermi="['manage:machine:remove']">删除</el-button>
         </template>
       </el-table-column>
@@ -73,18 +73,45 @@
         <el-form-item label="设备编号" prop="innerCode">
           {{ form.innerCode == null ? "系统自动生成" : form.innerCode }}
         </el-form-item>
-        <el-form-item label="选择型号" prop="vmTypeId">
+        <el-form-item label="供货时间" v-if="form.innerCode != null">
+          <span>{{ parseTime(form.lastSupplyTime, '{y}-{m}-{d} {h}:{i}:{s}') }}</span>
+        </el-form-item>
+
+        <el-form-item label="设备类型" v-if="form.innerCode != null">
+          <div v-for="item in vmTypeList" :key="item.id">
+            <span v-if="form.vmTypeId == item.id">{{ item.name }}</span>
+          </div>
+        </el-form-item>
+        <el-form-item label="设备容量" v-if="form.innerCode != null">
+          <span>{{ form.channelMaxCapacity }}</span>
+        </el-form-item>
+
+        <el-form-item label="选择型号" prop="vmTypeId" v-if="form.innerCode == null">
           <el-select v-model="form.vmTypeId" placeholder="请选择设备型号">
             <el-option v-for="vmType in vmTypeList" :key="vmType.id" :label="vmType.name"
               :value="vmType.id"></el-option>
           </el-select>
         </el-form-item>
-        <el-form-item label="点位" prop="nodeId">
+        <el-form-item label="设备点位" prop="nodeId">
           <el-select v-model="form.nodeId" placeholder="请选择点位">
             <el-option v-for="node in nodeList" :key="node.id" :label="node.nodeName" :value="node.id">
             </el-option>
           </el-select>
         </el-form-item>
+        <el-form-item label="合作商" v-if="form.innerCode != null">
+          <div v-for="item in partnerList" :key="item.id">
+            <span v-if="form.partnerId == item.id">{{ item.partnerName }}</span>
+          </div>
+        </el-form-item>
+        <el-form-item label="所属区域" v-if="form.innerCode != null">
+          <div v-for="item in regionList" :key="item.id">
+            <span v-if="form.regionId == item.id">{{ item.regionName }}</span>
+          </div>
+        </el-form-item>
+        <el-form-item label="设备地址" v-if="form.innerCode != null">
+          <span>{{ form.addr }}</span>
+        </el-form-item>
+
       </el-form>
       <template #footer>
         <div class="dialog-footer">
