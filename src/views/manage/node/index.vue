@@ -56,6 +56,8 @@
       <el-table-column label="详细地址" align="center" prop="address" />
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
         <template #default="scope">
+          <el-button link type="primary" @click="handleInfo(scope.row)"
+            v-hasPermi="['manage:machine:list']">查看详情</el-button>
           <el-button link type="primary" @click="handleUpdate(scope.row)"
             v-hasPermi="['manage:node:edit']">修改</el-button>
           <el-button link type="primary" @click="handleDelete(scope.row)"
@@ -99,10 +101,28 @@
           </el-select>
         </el-form-item>
       </el-form>
+    </el-dialog>
+    <!-- 添加或修改点位对话框 -->
+    <el-dialog :title="title" v-model="infoOpen" width="600px" append-to-body>
+      <el-table v-loading="loading" :data="machineList">
+        <el-table-column label="序号" align="center" type="index" width="50px" />
+        <el-table-column label="设备编号" align="center" prop="innerCode" />
+        <el-table-column label="设备状态" align="center" prop="vmStatus">
+          <template #default="scope">
+            <dict-tag :options="vm_status" :value="scope.row.vmStatus" />
+          </template>
+        </el-table-column>
+        <el-table-column label="最后一次供货时间" align="center" prop="lastSupplyTime" width="280px">
+          <template #default="scope">
+            <!-- {{ scope.row.lastSupplyTime ? parseTime(scope.row.lastSupplyTime, '{y}-{m}-{d} {h}:{i}:{s}') : '-' }} -->
+              {{ parseTime(scope.row.lastSupplyTime, '{y}-{m}-{d} {h}:{i}:{s}') }}
+          </template>
+        </el-table-column>
+      </el-table>
       <template #footer>
         <div class="dialog-footer">
-          <el-button type="primary" @click="submitForm">确 定</el-button>
-          <el-button @click="cancel">取 消</el-button>
+          <el-button type="primary" @click="infoClose">确 定</el-button>
+          <el-button @click="infoClose">取 消</el-button>
         </div>
       </template>
     </el-dialog>
@@ -114,9 +134,11 @@ import { listNode, getNode, delNode, addNode, updateNode } from "@/api/manage/no
 import { listRegion } from "@/api/manage/region";
 import { listPartner } from "@/api/manage/partner";
 import { loadAllParams } from "@/api/page";
+import { listMachine } from "@/api/manage/machine";
 
 const { proxy } = getCurrentInstance();
 const { business_type } = proxy.useDict('business_type');
+const { vm_status } = proxy.useDict('vm_status');
 
 const nodeList = ref([]);
 const open = ref(false);
@@ -227,6 +249,19 @@ function handleUpdate(row) {
     title.value = "修改点位";
   });
 }
+/** 查看按钮操作 */
+let infoOpen = ref(false);
+let machineList = ref([]);
+function handleInfo(row) {
+  reset();
+  const _id = row.id;
+  loadAllParams.nodeId = _id;
+  listMachine(loadAllParams).then(response => {
+    infoOpen.value = true;
+    machineList.value = response.rows;
+    title.value = "点位详情";
+  });
+}
 
 /** 提交按钮 */
 function submitForm() {
@@ -258,6 +293,11 @@ function handleDelete(row) {
     getList();
     proxy.$modal.msgSuccess("删除成功");
   }).catch(() => { });
+}
+
+/** 关闭详情弹窗 */
+function infoClose() {
+  infoOpen.value = false;
 }
 
 /** 导出按钮操作 */
