@@ -31,7 +31,7 @@
 
     <el-table v-loading="loading" :data="policyList" @selection-change="handleSelectionChange">
       <el-table-column type="selection" width="55" align="center" />
-      <el-table-column label="序号" type="index" align="center" prop="policyId" width="50px"/>
+      <el-table-column label="序号" type="index" align="center" prop="policyId" width="50px" />
       <el-table-column label="策略名称" align="center" prop="policyName" />
       <el-table-column label="策略方案" align="center" prop="discount" />
       <el-table-column label="创建日期" align="center" prop="createTime" width="180">
@@ -41,6 +41,8 @@
       </el-table-column>
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
         <template #default="scope">
+          <el-button link type="primary" @click="handleInfo(scope.row)"
+            v-hasPermi="['manage:machine:list']">查看详情</el-button>
           <el-button link type="primary" @click="handleUpdate(scope.row)"
             v-hasPermi="['manage:policy:edit']">修改</el-button>
           <el-button link type="primary" @click="handleDelete(scope.row)"
@@ -49,8 +51,8 @@
       </el-table-column>
     </el-table>
 
-    <pagination v-show="total > 0" :total="total" v-model:page="queryParams.pageNum" v-model:limit="queryParams.pageSize"
-      @pagination="getList" />
+    <pagination v-show="total > 0" :total="total" v-model:page="queryParams.pageNum"
+      v-model:limit="queryParams.pageSize" @pagination="getList" />
 
     <!-- 添加或修改策略管理对话框 -->
     <el-dialog :title="title" v-model="open" width="500px" append-to-body>
@@ -60,7 +62,7 @@
         </el-form-item>
         <el-form-item label="策略方案" prop="discount">
           <!-- <el-input v-model="form.discount" placeholder="请输入策略方案" /> -->
-           <el-input-number v-model="form.discount" :min="1" :max="100" :step="1" :precision="0" placeholder="请输入策略方案" />
+          <el-input-number v-model="form.discount" :min="1" :max="100" :step="1" :precision="0" placeholder="请输入策略方案" />
         </el-form-item>
       </el-form>
       <template #footer>
@@ -70,11 +72,26 @@
         </div>
       </template>
     </el-dialog>
+    <el-dialog title="策略详情" v-model="infoOpen" width="500px" append-to-body>
+      <el-form ref="policyRef" :model="form" label-width="80px">
+        <el-form-item label="策略名称" prop="policyName">
+          <el-input v-model="form.policyName" placeholder="请输入策略名称" disabled />
+        </el-form-item>
+        <label>包含设备：</label>
+        <el-table v-loading="loading" :data="vmList" @selection-change="handleSelectionChange">
+          <el-table-column label="序号" type="index" align="center" width="50px" prop="innerCode" />
+          <el-table-column label="点位地址" align="center" prop="addr" show-overflow-tooltip />
+          <el-table-column label="设备编号" align="center" prop="innerCode" />
+        </el-table>
+      </el-form>
+    </el-dialog>
   </div>
 </template>
 
 <script setup name="Policy">
 import { listPolicy, getPolicy, delPolicy, addPolicy, updatePolicy } from "@/api/manage/policy";
+import { listMachine } from "@/api/manage/machine";
+import { loadAllParams } from "@/api/page";
 
 const { proxy } = getCurrentInstance();
 
@@ -150,6 +167,18 @@ function handleSelectionChange(selection) {
   multiple.value = !selection.length;
 }
 
+/* 查看按钮操作 */
+let infoOpen = ref(false);
+let vmList = ref([]);
+function handleInfo(row) {
+  form.value = row;
+  infoOpen.value = true;
+  loadAllParams.policyId = row.policyId;
+  listMachine(loadAllParams).then(response => {
+    vmList.value = response.rows;
+  });
+}
+
 /** 新增按钮操作 */
 function handleAdd() {
   reset();
@@ -194,7 +223,7 @@ function handleDelete(row) {
   const _policyIds = row.policyId || ids.value;
   proxy.$modal.confirm('是否确认删除策略管理编号为"' + _policyIds + '"的数据项？').then(function () {
     return delPolicy(_policyIds);
-  }).then(() => { 
+  }).then(() => {
     getList();
     proxy.$modal.msgSuccess("删除成功");
   }).catch(() => { });
