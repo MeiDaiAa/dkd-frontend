@@ -26,6 +26,10 @@
         <el-button type="warning" plain icon="Download" @click="handleExport"
           v-hasPermi="['manage:sku:export']">导出</el-button>
       </el-col>
+      <el-col :span="1.5">
+        <el-button type="warning" plain icon="Upload" @click="handleImport"
+          v-hasPermi="['manage:sku:add']">导入</el-button>
+      </el-col>
       <right-toolbar v-model:showSearch="showSearch" @queryTable="getList"></right-toolbar>
     </el-row>
 
@@ -101,6 +105,27 @@
         </div>
       </template>
     </el-dialog>
+    <el-dialog title="批量导入" v-model="excelOpen" width="500px" append-to-body>
+      <el-upload ref="upload" class="upload-demo" 
+        :action="uploadExcelUrl"
+        :limit="1" 
+        :on-exceed="handleExceed" 
+        :auto-upload="false" 
+        :before-upload="handleBeforeUpload"
+        :on-success="handleUploadSuccess"
+        :on-error="handleUploadError"
+        :headers="headers">
+        <template #trigger>
+          <el-button type="primary">选择文件</el-button>
+        </template>
+        <el-button class="ml-3" type="success" @click="submitUpload" style="margin-left: 10px;">上传文件</el-button>
+        <template #tip> 
+          <div class="el-upload__tip text-red">
+            上传文件仅支持，xls/xlsx格式，文件大小不得超过1M
+          </div>
+        </template>
+      </el-upload>
+    </el-dialog>
   </div>
 </template>
 
@@ -108,6 +133,24 @@
 import { listSku, getSku, delSku, addSku, updateSku } from "@/api/manage/sku";
 import { listSkuClass } from "@/api/manage/skuClass";
 import { loadAllParams } from "@/api/page";
+import { ref } from "vue";
+import { genFileId } from "element-plus";
+import { getToken } from "@/utils/auth";
+
+const uploadExcelUrl = ref(import.meta.env.VITE_APP_BASE_API + "/manage/sku/import"); // 上传的图片服务器地址
+const headers = ref({ Authorization: "Bearer " + getToken() });
+
+const upload = ref({});
+
+function handleExceed(files){
+  upload.value.clearFiles();
+  const file = files[0];
+  file.uid = genFileId();
+  upload.value.handleStart(file);
+}
+function submitUpload(){
+  upload.value.submit();
+}
 
 const { proxy } = getCurrentInstance();
 
@@ -163,6 +206,75 @@ function getList() {
     total.value = response.total;
     loading.value = false;
   });
+}
+
+const props = defineProps({
+  modelValue: [String, Object, Array],
+  // 大小限制(MB)
+  fileSize: {
+    type: Number,
+    default: 1,
+  },
+  // 文件类型, 例如['png', 'jpg', 'jpeg']
+  fileType: {
+    type: Array,
+    default: () => ["xls", "xlsx"],
+  },
+  // 是否显示提示
+  isShowTip: {
+    type: Boolean,
+    default: true
+  },
+});
+
+// 上传前loading加载
+function handleBeforeUpload(file) {
+  let isExcel = false;
+  if (props.fileType.length) {
+    let fileExtension = "";
+    if (file.name.lastIndexOf(".") > -1) {
+      fileExtension = file.name.slice(file.name.lastIndexOf(".") + 1);
+    }
+    isExcel = props.fileType.some(type => {
+      if (file.type.indexOf(type) > -1) return true;
+      if (fileExtension && fileExtension.indexOf(type) > -1) return true;
+      return false;
+    });
+  }
+  if (!isExcel) {
+    proxy.$modal.msgError(
+      `文件格式不正确, 请上传${props.fileType.join("/")}格式文件!`
+    );
+    return false;
+  }
+  if (props.fileSize) {
+    const isLt = file.size / 1024 / 1024 < props.fileSize;
+    if (!isLt) {
+      proxy.$modal.msgError(`上传Excel大小不能超过 ${props.fileSize} MB!`);
+      return false;
+    }
+  }
+  proxy.$modal.loading("正在上传Excel，请稍候...");
+}
+// 上传成功回调
+function handleUploadSuccess(res, file) {
+  if (res.code === 200) {
+    proxy.$modal.msgSuccess("上传Excel成功");
+    excelOpen.value = false;
+    getList();
+  } else {
+    proxy.$modal.msgError(res.msg);
+    proxy.$refs.imageUpload.handleRemove(file);
+  }
+  upload.value.clearFiles();
+  proxy.$modal.closeLoading();
+}
+
+// 上传失败
+function handleUploadError() {
+  proxy.$modal.msgError("上传Excel失败");
+  upload.value.clearFiles();
+  proxy.$modal.closeLoading();
 }
 
 // 取消按钮
@@ -263,6 +375,12 @@ function handleExport() {
   proxy.download('manage/sku/export', {
     ...queryParams.value
   }, `sku_${new Date().getTime()}.xlsx`)
+}
+
+/** 导入按钮操作 */
+const excelOpen = ref(false);
+function handleImport() {
+  excelOpen.value = true;
 }
 
 // 获取商品类型列表
