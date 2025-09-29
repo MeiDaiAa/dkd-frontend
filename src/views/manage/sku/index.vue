@@ -39,7 +39,7 @@
       </el-table-column>
       <el-table-column label="品牌" align="center" prop="brandName" />
       <el-table-column label="规格" align="center" prop="unit" />
-      <el-table-column label="商品价格" align="center" prop="price" >
+      <el-table-column label="商品价格" align="center" prop="price">
         <template #default="scope">
           <el-tag>￥{{ (scope.row.price / 100).toFixed(2) }}</el-tag>
         </template>
@@ -60,29 +60,32 @@
       </el-table-column>
     </el-table>
 
-    <pagination v-show="total > 0" :total="total" v-model:page="queryParams.pageNum" v-model:limit="queryParams.pageSize"
-      @pagination="getList" />
+    <pagination v-show="total > 0" :total="total" v-model:page="queryParams.pageNum"
+      v-model:limit="queryParams.pageSize" @pagination="getList" />
 
     <!-- 添加或修改商品管理对话框 -->
     <el-dialog :title="title" v-model="open" width="500px" append-to-body>
       <el-form ref="skuRef" :model="form" :rules="rules" label-width="80px">
         <el-form-item label="商品名称" prop="skuName">
-          <el-input v-model="form.skuName" placeholder="请输入商品名称" />
-        </el-form-item>
-        <el-form-item label="商品图片" prop="skuImage">
-          <image-upload v-model="form.skuImage" />
+          <el-input v-model="form.skuName" placeholder="请输入" />
         </el-form-item>
         <el-form-item label="品牌" prop="brandName">
           <el-input v-model="form.brandName" placeholder="请输入品牌" />
         </el-form-item>
-        <el-form-item label="规格(净含量)" prop="unit">
-          <el-input v-model="form.unit" placeholder="请输入规格(净含量)" />
+        <el-form-item label="商品价格" prop="price" width="300px">
+          <el-input-number placeholder="请输入" v-model="form.price" :precision="2" :step="0.5" :max="100"
+            :min="0.01" /><span style="margin-left: 10px;">元</span>
         </el-form-item>
-        <el-form-item label="商品价格，单位分" prop="price">
-          <el-input v-model="form.price" placeholder="请输入商品价格，单位分" />
+        <el-form-item label="商品类型" prop="classId">
+          <el-select v-model="form.classId" placeholder="请选择商品类型" clearable>
+            <el-option v-for="item in skuClassList" :key="item.classId" :label="item.className" :value="item.classId" />
+          </el-select>
         </el-form-item>
-        <el-form-item label="商品类型Id" prop="classId">
-          <el-input v-model="form.classId" placeholder="请输入商品类型Id" />
+        <el-form-item label="规格" prop="unit">
+          <el-input v-model="form.unit" placeholder="请输入" />
+        </el-form-item>
+        <el-form-item label="商品图片" prop="skuImage">
+          <image-upload v-model="form.skuImage" :limit="1" :multiple="false" />
         </el-form-item>
       </el-form>
       <template #footer>
@@ -97,6 +100,8 @@
 
 <script setup name="Sku">
 import { listSku, getSku, delSku, addSku, updateSku } from "@/api/manage/sku";
+import { listSkuClass } from "@/api/manage/skuClass";
+import { loadAllParams } from "@/api/page";
 
 const { proxy } = getCurrentInstance();
 
@@ -134,10 +139,10 @@ const data = reactive({
       { required: true, message: "规格(净含量)不能为空", trigger: "blur" }
     ],
     price: [
-      { required: true, message: "商品价格，单位分不能为空", trigger: "blur" }
+      { required: true, message: "商品价格不能为空", trigger: "blur" }
     ],
     classId: [
-      { required: true, message: "商品类型Id不能为空", trigger: "blur" }
+      { required: true, message: "商品类型不能为空", trigger: "blur" }
     ],
   }
 });
@@ -217,6 +222,7 @@ function handleUpdate(row) {
 /** 提交按钮 */
 function submitForm() {
   proxy.$refs["skuRef"].validate(valid => {
+    form.value.price = form.value.price * 100; // 转为分
     if (valid) {
       if (form.value.skuId != null) {
         updateSku(form.value).then(response => {
@@ -253,5 +259,14 @@ function handleExport() {
   }, `sku_${new Date().getTime()}.xlsx`)
 }
 
+// 获取商品类型列表
+const skuClassList = ref([]);
+function getSkuClassList() {
+  listSkuClass(loadAllParams).then(response => {
+    skuClassList.value = response.rows;
+  });
+}
+
 getList();
+getSkuClassList();
 </script>
