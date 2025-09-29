@@ -44,7 +44,13 @@
           <el-tag>￥{{ (scope.row.price / 100).toFixed(2) }}</el-tag>
         </template>
       </el-table-column>
-      <el-table-column label="商品类型" align="center" prop="classId" />
+      <el-table-column label="商品类型" align="center">
+        <template #default="scope">
+          <div v-for="item in skuClassList" :key="item.classId">
+            <span v-if="item.classId == scope.row.classId">{{ item.className }}</span>
+          </div>
+        </template>
+      </el-table-column>
       <el-table-column label="创建日期" align="center" prop="createTime" width="180">
         <template #default="scope">
           <span>{{ parseTime(scope.row.createTime, '{y}-{m}-{d} {h}:{i}:{s}') }}</span>
