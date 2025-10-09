@@ -332,6 +332,7 @@ function handleUpdate(row) {
   const _skuId = row.skuId || ids.value
   getSku(_skuId).then(response => {
     form.value = response.data;
+    form.value.price = (form.value.price / 100).toFixed(2); // 转为元
     open.value = true;
     title.value = "修改商品管理";
   });
