@@ -222,6 +222,8 @@ function handleSelectionChange(selection) {
 
 /** 新增按钮操作 */
 function handleAdd(val) {
+  // 清空运维人员列表
+  userList.value = [];
   if (val === 'anew') {
     taskInfo();
     getUserList();
